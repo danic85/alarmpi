@@ -1,31 +1,46 @@
-#!/usr/bin/python
+#!/bin/python
+# -*- coding: utf-8 -*-
 import time
-import ConfigParser
+import better_spoken_numbers as bsn
 
-#print int(time.strftime("%m%d"))
+from apcontent import alarmpi_content
 
-Config=ConfigParser.ConfigParser()
-try:
-  Config.read('alarm.config')
-except:
-  raise Exception('Sorry, Failed reading alarm.config file.')
+class birthday(alarmpi_content):
 
-birthday = 'null'
+  def build(self):
+    birthday = None
 
-if int(time.strftime("%m%d")) == 929 :
-  birthday = 'Ski with Pete'
-#if int(time.strftime("%m%d")) == 129 :
-#  birthday = 'dummy'
+    today = float(time.strftime("%m.%d"))
+    
+    if self._birthday(today):
+      birthday = self._name()
 
-print birthday
+    if birthday is None:
+      birthday = self._default()
+    else:
+      birthday = 'Today is ' + birthday + 's birthday.' 
 
-# reads out birthday
-if birthday == 'null':
-  birthday = ''
-else:
-  birthday = 'Today is ' + birthday + 's birthday.  ' 
+    if self.debug:
+      print birthday
 
-if Config.get('main','debug') == str(1):
-  print birthday
+    self.content = birthday
 
+  def _default(self):
+    if 'default' in self.sconfig:
+      return self.sconfig['default']
+    else:
+      return ''
 
+  def _birthday(self, today):
+    if 'birthday' in self.sconfig:
+      return today == float(self.sconfig['birthday'])
+    else:
+      self.sconfig['name'] = "Birthday configuration problem.  " + \
+                             self._name() + \
+                             "  has no birthday configured."
+      return True
+
+  def _name(self):
+    if 'name' in self.sconfig:
+      return self.sconfig['name']
+    return 'Unconfigured name'
